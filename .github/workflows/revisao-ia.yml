@@ -48,7 +48,7 @@ jobs:
 
       - name: Revisar alterações com IA
         id: ia
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@v3
         with:
           prompt-file: prompt.txt
           system-prompt: Você é um revisor de código objetivo.
