@@ -48,7 +48,7 @@ jobs:
           printf '\nAlterações do Pull Request:\n' >> prompt.txt
           cat diff-limitado.txt >> prompt.txt
 
-            - name: Revisar alterações com IA
+        - name: Revisar alterações com IA
         id: ia
         uses: actions/ai-inference@v1
         with:
