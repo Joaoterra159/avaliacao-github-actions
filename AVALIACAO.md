@@ -11,25 +11,56 @@ O workflow `ci.yml` executa verificações de segredos versionados, validade das
 
 **Por que testar em SQLite antes do D1?** Para identificar erros de sintaxe e problemas nas migrações antes de aplicá-las ao banco remoto.
 
-## Tarefa 2 — Proteção da main
-
-A branch `main` foi protegida por uma regra que exige Pull Request e aprovação do status check `verificar`.
-
-- [Pull Request #1 — bloqueado com CI vermelho e liberado após correção](https://github.com/Joaoterra159/avaliacao-github-actions/pull/1)
-
-**Teste de push direto:** o GitHub recusou o envio para a `main`, apresentando o erro `GH013` e informando que as alterações precisam passar por um Pull Request e pelo status check obrigatório.
-
 ## Tarefa 3 — Revisão de Pull Request por IA
 
-- [Pull Request #2 — revisão com IA](https://github.com/Joaoterra159/avaliacao-github-actions/pull/2)
+- [Pull Request #2 — revisão automática com IA](https://github.com/Joaoterra159/avaliacao-github-actions/pull/2)
 
-**Situação:** o workflow foi criado com `actions/ai-inference@v1`, leitura do diff e tentativa de publicação da resposta no Pull Request. Entretanto, a etapa de inferência apresentou o erro:
+**Implementação:** foi criado o workflow `.github/workflows/revisao-ia.yml`, que é acionado por eventos de Pull Request, obtém o diff das alterações, envia o conteúdo para uma IA e publica automaticamente o resultado como comentário no PR.
 
-`API error: TypeError: Cannot use 'in' operator to search for 'choices' in OK`
+Inicialmente, a integração com `actions/ai-inference@v1` apresentou um erro de inferência. Para resolver o problema, foi utilizada a versão `actions/ai-inference@v3`, com o GitHub Copilot CLI e a configuração `model: ''`, permitindo a seleção automática de modelo disponível no plano Copilot Free.
 
-Foram testados diferentes formatos de prompt e configurações de autenticação, sem sucesso. A publicação dos comentários da IA e o teste de falha por remoção da permissão `pull-requests: write` ainda estão pendentes.
+**Teste 1 — Identificação de SQL Injection**
 
-**Avaliação crítica:** não foi possível avaliar uma resposta da IA, pois a inferência falhou antes de produzir um comentário.
+Foi adicionado ao PR o arquivo `exemplos/sql-injection.js`, inicialmente contendo uma consulta SQL vulnerável por interpolar diretamente a variável `nome`:
+
+`const sql = \`SELECT * FROM alunos WHERE nome = '${nome}'\`;`
+
+A IA identificou corretamente a possibilidade de SQL Injection, explicou o risco de manipulação da consulta e recomendou o uso de parâmetros vinculados com `.prepare(...).bind(nome)`.
+
+**Teste 2 — Correção da vulnerabilidade**
+
+O código foi corrigido para utilizar uma consulta parametrizada:
+
+```javascript
+const sql = "SELECT * FROM alunos WHERE nome = ?";
+return await env.DB.prepare(sql).bind(nome).all();
+```
+
+Após o envio da correção, a IA executou uma nova revisão e confirmou que o exemplo passou a utilizar placeholder e `.bind(nome)`, sem identificar SQL Injection nesse trecho.
+
+**Teste 3 — Falha por falta de permissão**
+
+A permissão do workflow foi alterada temporariamente de `pull-requests: write` para `pull-requests: read`.
+
+A IA conseguiu realizar a análise, mas a etapa de publicação do comentário falhou com a mensagem:
+
+`GraphQL: Resource not accessible by integration (addComment)`
+
+`Error: Process completed with exit code 1.`
+
+Isso demonstrou que a permissão `pull-requests: write` é necessária para que o `GITHUB_TOKEN` publique comentários no Pull Request.
+
+Após o teste, a permissão `pull-requests: write` foi restaurada e o workflow voltou a executar com sucesso.
+
+**Avaliação crítica da IA**
+
+A revisão automática identificou corretamente a SQL Injection e reconheceu sua correção. Também apontou um possível risco de exposição do segredo `COPILOT_PAT`, pois o workflow de Pull Request utiliza uma credencial em uma execução cuja definição pode ser alterada por contribuidores com acesso à branch.
+
+Esse alerta é relevante e deve ser considerado antes de utilizar o workflow em produção. Uma abordagem mais segura é executar etapas privilegiadas apenas a partir de workflows confiáveis, com permissões e credenciais restritas.
+
+Entretanto, a IA não substitui verificações automáticas de CI nem revisão humana. Suas respostas podem conter inconsistências, classificações de gravidade discutíveis e resultados diferentes entre execuções. Por isso, os achados precisam ser validados antes de aplicar correções.
+
+**Resultado:** a revisão automática funcionou, publicou comentários no PR, identificou a vulnerabilidade proposital, reconheceu a correção e demonstrou a falha de permissão exigida na avaliação.
 
 ## Tarefa 4 — Migrações D1 após o merge
 
