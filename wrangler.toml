@@ -5,5 +5,5 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding = "DB"
 database_name = "avaliacao-notas"
-database_id = "SUBSTITUIR_PELO_ID_REAL"
+database_id = "cd1c0ebd-edf1-4d18-9372-ae71e0e417c0"
 migrations_dir = "migrations"
