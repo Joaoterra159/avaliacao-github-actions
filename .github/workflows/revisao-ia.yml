@@ -52,7 +52,7 @@ jobs:
         with:
           prompt-file: prompt.txt
           system-prompt: Você é um revisor de código objetivo.
-          model: gpt-5-mini
+          model: ''
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
 
