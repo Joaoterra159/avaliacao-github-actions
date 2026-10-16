@@ -50,9 +50,8 @@ jobs:
         id: ia
         uses: actions/ai-inference@v1
         with:
-          token: ${{ secrets.COPILOT_PAT }}
           prompt: "Responda apenas com a palavra TESTE."
-          model: gpt-4.1git add .github/workflows/revisao-ia.yml
+          model: gpt-4.1
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
 
