@@ -1,0 +1,9 @@
+
+name = "avaliacao-github-actions"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "avaliacao-notas"
+database_id = "SUBSTITUIR_PELO_ID_REAL"
+migrations_dir = "migrations"
