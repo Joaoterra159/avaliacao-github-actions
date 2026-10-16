@@ -1,5 +1,4 @@
-
 CREATE TABLE teste_erro (
     id INTEGER PRIMARY KEY,
-    nome TEXT NOT NULL,
+    nome TEXT NOT NULL
 );
